@@ -38,7 +38,6 @@ No more manual reverse engineering—just browse, capture, and get clean API cod
   - [Agent Configuration](#agent-configuration)
   - [SDK Selection](#sdk-selection)
 - [CLI Commands](#-cli-commands)
-- [Claude Code Plugin](#-claude-code-plugin)
 - [Examples](#-examples)
 - [Development](#-development)
 - [Contributing](#-contributing)
@@ -322,18 +321,6 @@ reverse-api-engineer run <run_id> --file api_client.py \
 | `2`  | Misuse — required arg missing under `--no-interactive` / `--json`.        |
 
 For `run`, the exit code is the underlying script's return code on success, or `1` if no script was found, or non-zero if `--no-interactive` would otherwise have to prompt.
-
-## 🔌 Claude Code Plugin
-
-Install the plugin in [Claude Code](https://claude.com/claude-code):
-
-```bash
-claude # Open REPL
-/plugin marketplace add kalil0321/reverse-api-engineer
-/plugin install reverse-api-engineer@reverse-api-engineer
-```
-
-See [plugin documentation](plugins/reverse-api-engineer/README.md) for commands, agents, skills, and usage examples.
 
 ## 💡 Examples
 
