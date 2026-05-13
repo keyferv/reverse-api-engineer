@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .base_engineer import BaseEngineer
+from .cursor_auth import get_cursor_api_key
 from .tui import ClaudeUI
 
 _BRIDGE_DIR = Path(__file__).resolve().parent / "cursor_bridge"
@@ -181,7 +182,7 @@ class CursorEngineer(BaseEngineer):
         mcp_servers: dict[str, Any] | None,
         resume_agent_id: str | None,
     ) -> dict[str, Any]:
-        api_key = os.environ.get("CURSOR_API_KEY", "")
+        api_key = get_cursor_api_key()
         req: dict[str, Any] = {
             "cwd": self._workspace_cwd(),
             "modelId": self.cursor_model,
@@ -344,11 +345,18 @@ class CursorEngineer(BaseEngineer):
             self.ui.console.print("\n[dim]Set CURSOR_API_KEY and ensure Node.js 18+ and npm are installed.[/dim]")
             return None
 
-        if not os.environ.get("CURSOR_API_KEY"):
-            msg = "CURSOR_API_KEY is not set"
+        if not get_cursor_api_key():
+            msg = "CURSOR_API_KEY is not available to this process"
             self.ui.error(msg)
             self.message_store.save_error(msg)
-            self.ui.console.print("\n[dim]Create an API key at https://cursor.com/dashboard/integrations[/dim]")
+            self.ui.console.print("\n[dim]Create a key: https://cursor.com/dashboard/integrations[/dim]")
+            self.ui.console.print(
+                "[dim]If `echo $CURSOR_API_KEY` works in your shell but this fails, "
+                "export it so subprocesses see it:[/dim] [white]export CURSOR_API_KEY='…'[/white]"
+            )
+            self.ui.console.print(
+                "[dim]Or set[/dim] [white]CURSOR_API_KEY_FILE[/white] [dim]to a file whose first line is the key.[/dim]"
+            )
             return None
 
         system_prompt, user_message = self._build_prompts()
@@ -476,11 +484,18 @@ class CursorAutoEngineer(CursorEngineer):
             self.message_store.save_error(dep_err)
             return None
 
-        if not os.environ.get("CURSOR_API_KEY"):
-            msg = "CURSOR_API_KEY is not set"
+        if not get_cursor_api_key():
+            msg = "CURSOR_API_KEY is not available to this process"
             self.ui.error(msg)
             self.message_store.save_error(msg)
-            self.ui.console.print("\n[dim]Create an API key at https://cursor.com/dashboard/integrations[/dim]")
+            self.ui.console.print("\n[dim]Create a key: https://cursor.com/dashboard/integrations[/dim]")
+            self.ui.console.print(
+                "[dim]If `echo $CURSOR_API_KEY` works in your shell but this fails, "
+                "export it so subprocesses see it:[/dim] [white]export CURSOR_API_KEY='…'[/white]"
+            )
+            self.ui.console.print(
+                "[dim]Or set[/dim] [white]CURSOR_API_KEY_FILE[/white] [dim]to a file whose first line is the key.[/dim]"
+            )
             return None
 
         system_prompt, user_message = ClaudeAutoEngineer._build_auto_prompts(self)
