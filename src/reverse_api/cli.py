@@ -209,7 +209,11 @@ def _build_dry_run_payload(
     import shutil
     import subprocess
 
+    from .agent_browser import check_agent_browser_runtime
+
     checks: list[dict] = []
+    agent_provider = config_manager.get("agent_provider", "auto")
+    global_agent_browser = shutil.which("agent-browser")
 
     # 1. Prompt
     if not prompt or not prompt.strip():
@@ -231,14 +235,13 @@ def _build_dry_run_payload(
         checks.append({"name": "url", "status": "ok", "message": "(none — agent will pick a start)"})
 
     # 3. Agent provider
-    agent_provider = config_manager.get("agent_provider", "auto")
-    if agent_provider in ("auto", "chrome-mcp"):
+    if agent_provider in ("auto", "chrome-mcp", "agent-browser"):
         checks.append({"name": "agent_provider", "status": "ok", "message": agent_provider})
     else:
         checks.append({
             "name": "agent_provider",
             "status": "error",
-            "message": f"unknown agent_provider {agent_provider!r}; expected 'auto' or 'chrome-mcp'",
+            "message": f"unknown agent_provider {agent_provider!r}; expected 'auto', 'chrome-mcp', or 'agent-browser'",
         })
 
     # 4. SDK + API key presence (we only check env var existence, not validity)
@@ -264,16 +267,23 @@ def _build_dry_run_payload(
     else:
         checks.append({"name": f"sdk:{sdk}", "status": "ok", "message": f"{sdk_env_var} present"})
 
-    # 5. Node.js + npx for MCP servers (both auto and chrome-mcp shell out to
-    # `npx <package>`; minimal Docker images sometimes ship `node` without
-    # `npx`, so checking only `node` would lull dry-run into a false ok).
+    # 5. Node.js + npx — MCP providers need both; agent-browser with a global binary does not.
     node = shutil.which("node")
+    needs_node_for_browser = agent_provider != "agent-browser" or global_agent_browser is None
     if node is None:
-        checks.append({
-            "name": "node",
-            "status": "error",
-            "message": "node not found in PATH; required by both auto (rae-playwright-mcp) and chrome-mcp",
-        })
+        if needs_node_for_browser:
+            checks.append({
+                "name": "node",
+                "status": "error",
+                "message": "node not found in PATH; required for agent-mode browser tooling "
+                "(MCP browser servers plus Vercel agent-browser install/bootstrap)",
+            })
+        else:
+            checks.append({
+                "name": "node",
+                "status": "ok",
+                "message": "not on PATH (optional while global `agent-browser` is installed)",
+            })
     else:
         try:
             ver = subprocess.run(
@@ -284,12 +294,23 @@ def _build_dry_run_payload(
             checks.append({"name": "node", "status": "warn", "message": f"could not query version: {e}"})
 
     npx = shutil.which("npx")
+    needs_npx_for_browser = agent_provider in ("auto", "chrome-mcp") or (
+        agent_provider == "agent-browser" and global_agent_browser is None
+    )
     if npx is None:
-        checks.append({
-            "name": "npx",
-            "status": "error",
-            "message": "npx not found in PATH; both MCP servers are launched via `npx <package>`",
-        })
+        if needs_npx_for_browser:
+            checks.append({
+                "name": "npx",
+                "status": "error",
+                "message": "npx not found in PATH; required so npm can spawn MCP helpers and "
+                "fetch/run the pinned agent-browser CLI when no global binary is present",
+            })
+        else:
+            checks.append({
+                "name": "npx",
+                "status": "ok",
+                "message": "not on PATH (optional while global `agent-browser` is installed)",
+            })
     else:
         checks.append({"name": "npx", "status": "ok", "message": npx})
 
@@ -301,7 +322,23 @@ def _build_dry_run_payload(
             "message": "chrome-mcp without --headless requires Chrome 146+ with auto-connect enabled at chrome://inspect/#remote-debugging — this is not auto-checkable",
         })
 
-    # 7. Output dir writability — probe with a unique filename so we never
+    # 7. agent-browser CLI: read-only validation (no npm install during dry-run).
+    if agent_provider == "agent-browser":
+        ab_setup = check_agent_browser_runtime()
+        parts: list[str] = []
+        if ab_setup.error:
+            parts.append(ab_setup.error)
+        elif ab_setup.ok:
+            parts.append("`agent-browser` CLI reachable (`--help` OK)")
+        if ab_setup.notices:
+            parts.extend(ab_setup.notices)
+        checks.append({
+            "name": "agent-browser:cli",
+            "status": "error" if not ab_setup.ok else "ok",
+            "message": " | ".join(parts) if parts else "configured",
+        })
+
+    # 8. Output dir writability — probe with a unique filename so we never
     # clobber a real user file (a fixed name like `.dry_run_write_probe`
     # could legitimately exist in someone's output dir).
     import secrets
@@ -1009,6 +1046,7 @@ def handle_settings(mode_color=THEME_PRIMARY):
         provider_choices = [
             Choice(title="auto (Playwright MCP)", value="auto"),
             Choice(title="chrome-mcp (Chrome DevTools MCP)", value="chrome-mcp"),
+            Choice(title="agent-browser (Vercel CLI via shell/Bash)", value="agent-browser"),
             Choice(title="back", value="back"),
         ]
         provider = questionary.select(
@@ -1026,7 +1064,27 @@ def handle_settings(mode_color=THEME_PRIMARY):
         if provider and provider != "back":
             config_manager.set("agent_provider", provider)
             console.print(f" [dim]updated[/dim] agent provider: {provider}")
-            if provider == "chrome-mcp":
+            if provider == "agent-browser":
+                console.print()
+                console.print(
+                    " [dim]Browsing runs through Vercel's agent-browser CLI (not an MCP shim).[/dim]"
+                )
+                console.print(
+                    " [dim]On first agent run RAE installs the CLI with `npm install -g <pin>` when "
+                    "`agent-browser` is missing (you’ll see a banner), then reuses the global shim.[/dim]"
+                )
+                console.print(
+                    " [dim]Pin via `agent_browser_npx_package` in config or `RAE_AGENT_BROWSER_PACKAGE` env.[/dim]"
+                )
+                console.print(
+                    " [dim]Extra operator hints (cloud backends, corp proxy…): "
+                    "`agent_browser_notes` or `RAE_AGENT_BROWSER_NOTES`.[/dim]"
+                )
+                console.print(
+                    " [dim]Chrome download: `agent-browser install` once (add `--with-deps` on Linux).[/dim]"
+                )
+                console.print()
+            elif provider == "chrome-mcp":
                 console.print()
                 console.print(" [dim]chrome devtools mcp setup:[/dim]")
                 console.print(" [dim] 1. open chrome (version 146 or newer)[/dim]")
@@ -1422,7 +1480,7 @@ JSON output schema (--json):
     "run_id": "<id>" | null,
     "prompt": "...",
     "url": "..." | null,
-    "mode": "auto" | "chrome-mcp" | null,
+    "mode": "auto" | "chrome-mcp" | "agent-browser" | null,
     "har_path": "/abs/path/recording.har" | null,
     "script_path": "/abs/path/api_client.py" | null,
     "usage": { "input_tokens": ..., "output_tokens": ..., "total_cost": ... },
@@ -1726,6 +1784,22 @@ def run_auto_capture(
         console.print(" [dim]auto-connect disabled — mcp will spawn its own headless chrome[/dim]")
         console.print()
 
+    elif agent_provider == "agent-browser":
+        console.print()
+        console.print(
+            " [dim]agent-browser: Vercel CLI via shell (Reverse API Engineer does not attach "
+            "Playwright/Chrome browser MCP for this provider).[/dim]"
+        )
+        console.print(
+            " [dim]Startup prefers PATH `agent-browser`, otherwise installs via "
+            "`npm install -g <pin>` so Chromium pairs with a stable shim (with a banner); "
+            "only falls back to `npx -y` if npm cannot run.[/dim]"
+        )
+        console.print(
+            " [dim]First-time Chrome download: `agent-browser install` (add `--with-deps` on Linux).[/dim]"
+        )
+        console.print()
+
     sdk = config_manager.get("sdk", "claude")
     if model is None:
         model = default_model_for_configured_sdk(sdk)
@@ -1733,7 +1807,12 @@ def run_auto_capture(
     run_id = generate_run_id()
     timestamp = get_timestamp()
 
-    mode_label = "chrome-mcp" if agent_provider == "chrome-mcp" else "auto"
+    if agent_provider == "chrome-mcp":
+        mode_label = "chrome-mcp"
+    elif agent_provider == "agent-browser":
+        mode_label = "agent-browser"
+    else:
+        mode_label = "auto"
     session_manager.add_run(
         run_id=run_id,
         prompt=prompt,

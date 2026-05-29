@@ -55,13 +55,22 @@ Cycle modes with **Shift+Tab**:
 | Mode | What it does |
 |------|--------------|
 | `manual` | You drive the browser; AI generates the client from captured traffic. |
-| `agent` | An AI agent drives the browser autonomously (Playwright MCP or Chrome DevTools MCP). |
+| `agent` | An AI agent drives capture autonomously (Playwright or Chrome MCP, or Vercel agent-browser CLI). |
 | `engineer` | Re-run generation on a previous capture (`engineer <run_id>`). |
 | `collector` | Agent collects structured data (JSON/CSV) using web search + fetch. |
 
 Agent mode providers:
 - **auto** (default): Playwright MCP, single workflow for browsing + reverse engineering.
 - **chrome-mcp**: drives your real Chrome so you keep existing sessions/cookies. Requires Chrome 146+ and Node.js 20.19+.
+- **agent-browser**: [Vercel agent-browser](https://github.com/vercel-labs/agent-browser) **CLI** (not a Reverse API Engineer browser MCP server). At session start RAE uses whatever `agent-browser` is already on `PATH`, otherwise runs **`npm install -g <pin>`** (same pin as config / `RAE_AGENT_BROWSER_PACKAGE`), prints a yellow notice, validates with **`--help`**, and only then falls back to **`npx -y <pin>`** if npm cannot install. Prompts embed the resolved shell prefix alongside **`skills get core --full`**, **`skills list`**, HAR phases, cloud notes from `agent_browser_notes`. Tune with `agent_browser_npx_package` (optional), env `RAE_AGENT_BROWSER_*`. First Chromium fetch: **`agent-browser install`** (add `--with-deps` on trimmed Linux).
+
+
+Optional sanity checks:
+
+```bash
+agent-browser doctor --offline --quick || true
+agent-browser skills list >/dev/null
+```
 
 ## Configuration
 
@@ -70,6 +79,8 @@ Settings live in `~/.reverse-api/config.json` and can be edited via `/settings` 
 ```json
 {
   "agent_provider": "auto",
+  "agent_browser_npx_package": "agent-browser@0",
+  "agent_browser_notes": "",
   "claude_code_model": "claude-sonnet-4-6",
   "collector_model": "claude-sonnet-4-6",
   "opencode_model": "claude-sonnet-4-6",
@@ -119,7 +130,7 @@ Pass `--no-interactive` (and/or `--json`) to skip prompts. With `--json`, stdout
 | `run_id`         | `string` \| `null`  | Use with `show` / `engineer` / `run`.                                  |
 | `prompt`         | `string`            |                                                                        |
 | `url`            | `string` \| `null`  |                                                                        |
-| `mode`           | `string` \| `null`  | `"auto"` or `"chrome-mcp"`.                                            |
+| `mode`           | `string` \| `null`  | `"auto"`, `"chrome-mcp"`, or `"agent-browser"`.                                        |
 | `har_path`       | `string` \| `null`  | Captured HAR.                                                          |
 | `script_path`    | `string` \| `null`  | Generated client.                                                      |
 | `usage`          | `object`            | `{input_tokens, output_tokens, total_cost}`.                           |

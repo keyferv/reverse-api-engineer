@@ -105,3 +105,6 @@ debug/
 store-assets/
 
 .playwright-mcp/
+
+src/reverse_api/cursor_bridge/node_modules/
+

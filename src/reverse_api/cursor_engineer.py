@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from .agent_browser import ensure_agent_browser_runtime, print_agent_browser_setup_notices
 from .base_engineer import BaseEngineer
 from .tui import ClaudeUI
 
@@ -406,7 +407,7 @@ class CursorEngineer(BaseEngineer):
 
 
 class CursorAutoEngineer(CursorEngineer):
-    """Agent + capture using Cursor SDK with MCP browser servers."""
+    """Agent capture using Cursor SDK—browser via MCP for auto/chrome-mcp or Vercel agent-browser CLI prompts for agent-browser."""
 
     def __init__(
         self,
@@ -434,6 +435,8 @@ class CursorAutoEngineer(CursorEngineer):
         self.headless = headless
 
     def _cursor_mcp_servers(self) -> dict[str, Any]:
+        if self.agent_provider == "agent-browser":
+            return {}
         if self.agent_provider == "chrome-mcp":
             args = ["-y", "chrome-devtools-mcp@latest", "--no-usage-statistics"]
             if self.headless:
@@ -482,6 +485,15 @@ class CursorAutoEngineer(CursorEngineer):
             self.message_store.save_error(msg)
             self.ui.console.print("\n[dim]Create an API key at https://cursor.com/dashboard/integrations[/dim]")
             return None
+
+        if self.agent_provider == "agent-browser":
+            ab_setup = ensure_agent_browser_runtime()
+            print_agent_browser_setup_notices(self.ui.console, ab_setup)
+            if not ab_setup.ok:
+                err = ab_setup.error or "agent-browser setup failed"
+                self.ui.error(err)
+                self.message_store.save_error(err)
+                return None
 
         system_prompt, user_message = ClaudeAutoEngineer._build_auto_prompts(self)
         self.message_store.save_prompt(user_message)

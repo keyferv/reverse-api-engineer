@@ -3,8 +3,7 @@ title: Agent configuration
 description: Configure the AI agent that drives the browser in agent mode.
 ---
 
-Agent mode runs an AI loop that drives a browser via MCP. The provider you
-pick determines *which* browser and *how* it's controlled.
+Agent mode runs an AI loop. **`auto`** and **`chrome-mcp`** attach browser automation via **MCP**. **`agent-browser`** instead delegates browsing to the **[Vercel agent-browser CLI](https://github.com/vercel-labs/agent-browser)**; Reverse API Engineer looks for `agent-browser` on `PATH`, otherwise runs **`npm install -g …`** (using the same pin as config), surfaces a console notice, verifies **`--help`**, and only falls back to **`npx -y …`** if npm cannot complete the install.
 
 ## Agent providers
 
@@ -30,6 +29,26 @@ profile.
 - Chrome 146+
 - Node.js 20.19+
 - Auto-connect enabled at `chrome://inspect/#remote-debugging`
+
+### `agent-browser`
+
+Uses **[Vercel agent-browser](https://github.com/vercel-labs/agent-browser)** as a standalone CLI—not a Reverse API Engineer MCP shim.
+
+After the CLI is available, Reverse API Engineer embeds the resolved shell prefix in the user prompt (**`agent-browser …`** vs **`npx -y <pin> …`**) and validates with **`--help`**. Prompts steer the model through **`skills get core --full`** (retry with **`skills list`** / matching bundles when operators name a cloud/runtime backend via `agent_browser_notes`). Claude SDK runs widen the tool allow-list for Bash-heavy flows; OpenCode/Copilot/Cursor omit Reverse API Engineer browser MCP registration for `agent-browser` and rely on their own shell primitives.
+
+Suggested JSON knobs:
+
+```json
+{
+  "agent_provider": "agent-browser",
+  "agent_browser_npx_package": "agent-browser@0",
+  "agent_browser_notes": "Optional operator guidance (AgentCore endpoints, corp proxy tweaks, sandbox IDs, …)"
+}
+```
+
+You can alternatively drive the same knobs with **`RAE_AGENT_BROWSER_PACKAGE`** or **`RAE_AGENT_BROWSER_NOTES`**.
+
+First-time infra still needs Chromium bits just like upstream docs describe (`agent-browser install`, `--with-deps` on trimmed Linux VMs).
 
 ## How to switch providers
 

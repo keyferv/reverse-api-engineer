@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-05-14
+### Added
+
+- **`agent_provider: "agent-browser"`**: Shell-driven **[Vercel agent-browser CLI](https://github.com/vercel-labs/agent-browser)**—RAE prefers an `agent-browser` binary on `PATH`, otherwise runs **`npm install -g <pin>`** (with a console notice), validates **`--help`**, and only then falls back to **`npx -y <pin>`** if npm cannot install. Prompts embed the resolved shell prefix plus **`skills get …` / `skills list`**, HAR flows, and optional `agent_browser_notes`. No bundled browser MCP shim; pin via `agent_browser_npx_package` / `RAE_AGENT_BROWSER_PACKAGE`.
 
 ### Added
 - **Cursor SDK support**: Added `sdk=cursor` / `--sdk cursor` engineering support through a bundled Node bridge around the Cursor TypeScript SDK. Cursor runs use the configured Cursor model (default `composer-2`), accept MCP server configuration, resume Cursor agents across follow-up turns, and normalize streamed tool output plus token usage into the existing TUI/message-store flow
