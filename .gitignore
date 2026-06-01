@@ -108,3 +108,6 @@ store-assets/
 
 src/reverse_api/cursor_bridge/node_modules/
 
+
+# Claude Code harness internals
+.claude/
