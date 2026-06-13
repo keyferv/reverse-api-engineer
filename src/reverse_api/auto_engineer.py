@@ -758,3 +758,47 @@ class CopilotAutoEngineer:
                     await client.stop()
                 except Exception:
                     pass
+
+
+class OpenRouterAutoEngineer:
+    """Agent mode via OpenRouter API.
+
+    Uses OpenAI-compatible tool calling with local MCP servers.
+    Delegates to ``OpenRouterEngineer`` while wiring browser tooling.
+    """
+
+    def __init__(
+        self,
+        run_id: str,
+        prompt: str,
+        openrouter_model: str | None = None,
+        output_dir: str | None = None,
+        agent_provider: str = "auto",
+        **kwargs: Any,
+    ):
+        from .openrouter_engineer import OpenRouterEngineer
+
+        headless = kwargs.pop("headless", False)
+        har_dir = get_har_dir(run_id, output_dir)
+        har_path = har_dir / "recording.har"
+
+        self._engineer = OpenRouterEngineer(
+            run_id=run_id,
+            har_path=har_path,
+            prompt=prompt,
+            openrouter_model=openrouter_model,
+            output_dir=output_dir,
+            **kwargs,
+        )
+        self.agent_provider = agent_provider
+        self.headless = headless
+
+    def start_sync(self) -> None:
+        self._engineer.start_sync()
+
+    def stop_sync(self) -> None:
+        self._engineer.stop_sync()
+
+    async def analyze_and_generate(self) -> dict[str, Any] | None:
+        """Run agent mode with OpenRouter (MCP tools via OpenAI-compatible format)."""
+        return await self._engineer.analyze_and_generate()

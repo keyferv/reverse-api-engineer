@@ -114,6 +114,21 @@ MODEL_PRICING = {
         "cache_read": 0,
         "reasoning": 0,
     },
+    # OpenRouter models (provider/model format)
+    "anthropic/claude-sonnet-4": {
+        "input": 3.00,
+        "output": 15.00,
+        "cache_creation": 3.75,
+        "cache_read": 0.30,
+        "reasoning": 15.00,
+    },
+    "anthropic/claude-opus-4": {
+        "input": 15.00,
+        "output": 25.00,
+        "cache_creation": 6.25,
+        "cache_read": 0.50,
+        "reasoning": 25.00,
+    },
 }
 
 
@@ -141,6 +156,14 @@ _LITELLM_MODEL_MAP = {
         "gemini-3-pro",
         "google/gemini-3-pro",
         "gemini-pro",
+    ],
+    "anthropic/claude-sonnet-4": [
+        "anthropic/claude-sonnet-4",
+        "openrouter/anthropic/claude-sonnet-4",
+    ],
+    "anthropic/claude-opus-4": [
+        "anthropic/claude-opus-4",
+        "openrouter/anthropic/claude-opus-4",
     ],
 }
 

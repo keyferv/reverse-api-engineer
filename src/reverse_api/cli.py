@@ -65,6 +65,8 @@ def default_model_for_configured_sdk(sdk: str | None = None) -> str:
         return config_manager.get("copilot_model", "gpt-5")
     if s == "cursor":
         return config_manager.get("cursor_model", "composer-2.5")
+    if s == "openrouter":
+        return config_manager.get("openrouter_model", "anthropic/claude-sonnet-4")
     return config_manager.get("claude_code_model", "claude-sonnet-4-6")
 
 
@@ -258,6 +260,7 @@ def _build_dry_run_payload(
         "opencode": "OPENCODE_API_KEY",
         "copilot": "GITHUB_COPILOT_TOKEN",
         "cursor": "CURSOR_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
     }.get(sdk)
     if sdk_env_var is None:
         checks.append({
@@ -385,12 +388,14 @@ def _build_dry_run_payload(
         "opencode": "opencode_model",
         "copilot": "copilot_model",
         "cursor": "cursor_model",
+        "openrouter": "openrouter_model",
     }.get(sdk, "claude_code_model")
     sdk_default_model = {
         "claude": "claude-sonnet-4-6",
         "opencode": "claude-opus-4-6",
         "copilot": "gpt-5",
         "cursor": "composer-2.5",
+        "openrouter": "anthropic/claude-sonnet-4",
     }.get(sdk, "claude-sonnet-4-6")
     resolved_model = model or config_manager.get(sdk_model_key, sdk_default_model)
 
@@ -1060,6 +1065,7 @@ def handle_settings(mode_color=THEME_PRIMARY):
             Choice(title="copilot", value="copilot"),
             Choice(title="cursor", value="cursor"),
             Choice(title="opencode", value="opencode"),
+            Choice(title="openrouter", value="openrouter"),
             Choice(title="back", value="back"),
         ]
         sdk = questionary.select(

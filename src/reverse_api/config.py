@@ -19,10 +19,12 @@ DEFAULT_CONFIG = {
     "copilot_model": "gpt-5",  # Model for Copilot SDK sessions
     "opencode_model": "claude-opus-4-6",
     "opencode_provider": "anthropic",
+    "openrouter_model": "anthropic/claude-sonnet-4",  # Default model for OpenRouter
+    "openrouter_provider": "openrouter",  # Provider ID for OpenRouter
     "output_dir": None,  # None means use ~/.reverse-api/runs
     "output_language": "python",  # "python", "javascript", or "typescript"
     "real_time_sync": True,  # Enable real-time file sync during engineering
-    "sdk": "claude",  # "claude", "opencode", "copilot", or "cursor"
+    "sdk": "claude",  # "claude", "opencode", "copilot", "cursor", or "openrouter"
 }
 
 

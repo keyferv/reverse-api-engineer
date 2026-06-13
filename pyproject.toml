@@ -66,6 +66,9 @@ collector = [
 copilot = [
     "github-copilot-sdk>=0.1.0",
 ]
+openrouter = [
+    "openai>=1.0.0",
+]
 
 [project.urls]
 Homepage = "https://reverseapi.dev"

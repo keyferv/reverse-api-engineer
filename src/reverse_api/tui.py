@@ -343,6 +343,9 @@ def get_model_choices() -> list[dict]:
         {"name": "Sonnet 4.6 [Balanced]", "value": "claude-sonnet-4-6"},
         {"name": "Opus 4.6 [Power]", "value": "claude-opus-4-6"},
         {"name": "Haiku 4.5 [Speed]", "value": "claude-haiku-4-5"},
+        {"name": "--- OpenRouter ---", "value": "separator"},
+        {"name": "Claude Sonnet 4 (via OpenRouter)", "value": "anthropic/claude-sonnet-4"},
+        {"name": "Claude Opus 4 (via OpenRouter)", "value": "anthropic/claude-opus-4"},
     ]
 
 

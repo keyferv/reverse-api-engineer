@@ -151,6 +151,8 @@ class TestDefaultConfig:
             "cursor_model",
             "cursor_setting_sources",
             "cursor_web_search",
+            "openrouter_model",
+            "openrouter_provider",
             "opencode_model",
             "opencode_provider",
             "output_dir",

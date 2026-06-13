@@ -586,6 +586,52 @@ class TestAgentDryRun:
         assert payload["would_run"]["model"] == "composer-2-custom"
 
 
+    def test_dry_run_openrouter_model_resolution(self, tmp_path):
+        """OpenRouter SDK model resolution in dry-run."""
+        from reverse_api.cli import agent as agent_cmd
+
+        runner = CliRunner()
+        with patch("reverse_api.cli.config_manager") as cm:
+            cm.get.side_effect = lambda key, default=None: {
+                "agent_provider": "auto",
+                "sdk": "openrouter",
+                "openrouter_model": "anthropic/claude-sonnet-4-custom",
+                "output_dir": str(tmp_path),
+            }.get(key, default)
+            result = runner.invoke(agent_cmd, ["--dry-run", "-p", "x"])
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.stdout.strip())
+        assert payload["would_run"]["sdk"] == "openrouter"
+        assert payload["would_run"]["model"] == "anthropic/claude-sonnet-4-custom"
+
+    def test_dry_run_openrouter_env_var_check(self, tmp_path):
+        """OpenRouter SDK env var check in dry-run."""
+        from reverse_api.cli import agent as agent_cmd
+
+        runner = CliRunner()
+        with patch("reverse_api.cli.config_manager") as cm:
+            cm.get.side_effect = lambda key, default=None: {
+                "agent_provider": "auto",
+                "sdk": "openrouter",
+                "openrouter_model": "anthropic/claude-sonnet-4",
+                "output_dir": str(tmp_path),
+            }.get(key, default)
+
+            # Clear OPENROUTER_API_KEY env var
+            with patch.dict("os.environ", {}, clear=True):
+                result = runner.invoke(agent_cmd, ["--dry-run", "-p", "x"])
+
+            assert result.exit_code == 0, result.output
+            payload = json.loads(result.stdout.strip())
+
+            # Check that OPENROUTER_API_KEY is in the checks
+            sdk_check = next((c for c in payload["checks"] if c["name"] == "sdk:openrouter"), None)
+            assert sdk_check is not None
+            assert sdk_check["status"] == "warn"
+            assert "OPENROUTER_API_KEY" in sdk_check["message"]
+
+
 class TestRootHelpMentionsScripted:
     """Item #6 partial: root --help should advertise scripted features."""
 
