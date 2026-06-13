@@ -1280,26 +1280,36 @@ def handle_settings(mode_color=THEME_PRIMARY):
                 console.print(f" [dim]updated[/dim] opencode model: {new_model}\n")
 
     elif action == "openrouter_model":
+        import os
+
+        from .openrouter_models import get_openrouter_model_choices
+
+        api_key = os.environ.get("OPENROUTER_API_KEY", "")
+        if not api_key:
+            console.print(" [yellow]warning:[/yellow] OPENROUTER_API_KEY not set, using default models\n")
+
+        model_choices = get_openrouter_model_choices(api_key)
+        model_choices_display = [Choice(title=c["name"], value=c["value"]) for c in model_choices]
+        model_choices_display.append(Choice(title="back", value="back"))
+
         current = config_manager.get("openrouter_model", "anthropic/claude-sonnet-4")
-        new_model = questionary.text(
+        console.print(f" [dim]current: {current}[/dim]\n")
+
+        new_model = questionary.select(
             " > openrouter model",
-            default=current or "anthropic/claude-sonnet-4",
-            instruction="(e.g., 'anthropic/claude-sonnet-4', 'google/gemini-2.5-pro')",
+            choices=model_choices_display,
+            pointer=">",
             qmark="",
             style=questionary.Style(
                 [
-                    ("question", f"fg:{THEME_SECONDARY}"),
-                    ("instruction", f"fg:{THEME_DIM} italic"),
+                    ("pointer", f"fg:{mode_color} bold"),
+                    ("highlighted", f"fg:{mode_color} bold"),
                 ]
             ),
         ).ask()
-        if new_model is not None:
-            new_model = new_model.strip()
-            if not new_model:
-                console.print(" [yellow]error:[/yellow] openrouter model cannot be empty\n")
-            else:
-                config_manager.set("openrouter_model", new_model)
-                console.print(f" [dim]updated[/dim] openrouter model: {new_model}\n")
+        if new_model and new_model != "back":
+            config_manager.set("openrouter_model", new_model)
+            console.print(f" [dim]updated[/dim] openrouter model: {new_model}\n")
 
     elif action == "deepseek_model":
         current = config_manager.get("deepseek_model", "deepseek-chat")
