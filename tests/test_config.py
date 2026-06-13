@@ -151,6 +151,8 @@ class TestDefaultConfig:
             "cursor_model",
             "cursor_setting_sources",
             "cursor_web_search",
+            "deepseek_model",
+            "deepseek_provider",
             "openrouter_model",
             "openrouter_provider",
             "opencode_model",

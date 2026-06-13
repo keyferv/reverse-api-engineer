@@ -129,6 +129,43 @@ MODEL_PRICING = {
         "cache_read": 0.50,
         "reasoning": 25.00,
     },
+    # DeepSeek models
+    "deepseek-chat": {
+        "input": 0.27,
+        "output": 1.10,
+        "cache_creation": 0.0,
+        "cache_read": 0.0,
+        "reasoning": 1.10,
+    },
+    "deepseek-reasoner": {
+        "input": 0.55,
+        "output": 2.19,
+        "cache_creation": 0.0,
+        "cache_read": 0.0,
+        "reasoning": 2.19,
+    },
+    "deepseek-coder": {
+        "input": 0.14,
+        "output": 0.28,
+        "cache_creation": 0.0,
+        "cache_read": 0.0,
+        "reasoning": 0.28,
+    },
+    # MiMo models (via OpenRouter)
+    "xiaomi/mimo-v2.5-pro": {
+        "input": 1.00,
+        "output": 3.00,
+        "cache_creation": 0.0,
+        "cache_read": 0.0,
+        "reasoning": 3.00,
+    },
+    "xiaomi/mimo-v2.5-flash": {
+        "input": 0.20,
+        "output": 0.80,
+        "cache_creation": 0.0,
+        "cache_read": 0.0,
+        "reasoning": 0.80,
+    },
 }
 
 
@@ -164,6 +201,26 @@ _LITELLM_MODEL_MAP = {
     "anthropic/claude-opus-4": [
         "anthropic/claude-opus-4",
         "openrouter/anthropic/claude-opus-4",
+    ],
+    "deepseek-chat": [
+        "deepseek-chat",
+        "deepseek/deepseek-chat",
+    ],
+    "deepseek-reasoner": [
+        "deepseek-reasoner",
+        "deepseek/deepseek-reasoner",
+    ],
+    "deepseek-coder": [
+        "deepseek-coder",
+        "deepseek/deepseek-coder",
+    ],
+    "xiaomi/mimo-v2.5-pro": [
+        "xiaomi/mimo-v2.5-pro",
+        "openrouter/xiaomi/mimo-v2.5-pro",
+    ],
+    "xiaomi/mimo-v2.5-flash": [
+        "xiaomi/mimo-v2.5-flash",
+        "openrouter/xiaomi/mimo-v2.5-flash",
     ],
 }
 

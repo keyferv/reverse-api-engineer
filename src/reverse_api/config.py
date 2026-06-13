@@ -21,10 +21,12 @@ DEFAULT_CONFIG = {
     "opencode_provider": "anthropic",
     "openrouter_model": "anthropic/claude-sonnet-4",  # Default model for OpenRouter
     "openrouter_provider": "openrouter",  # Provider ID for OpenRouter
+    "deepseek_model": "deepseek-chat",  # Default model for DeepSeek
+    "deepseek_provider": "deepseek",  # Provider ID for DeepSeek
     "output_dir": None,  # None means use ~/.reverse-api/runs
     "output_language": "python",  # "python", "javascript", or "typescript"
     "real_time_sync": True,  # Enable real-time file sync during engineering
-    "sdk": "claude",  # "claude", "opencode", "copilot", "cursor", or "openrouter"
+    "sdk": "claude",  # "claude", "opencode", "copilot", "cursor", "openrouter", or "deepseek"
 }
 
 

@@ -346,6 +346,13 @@ def get_model_choices() -> list[dict]:
         {"name": "--- OpenRouter ---", "value": "separator"},
         {"name": "Claude Sonnet 4 (via OpenRouter)", "value": "anthropic/claude-sonnet-4"},
         {"name": "Claude Opus 4 (via OpenRouter)", "value": "anthropic/claude-opus-4"},
+        {"name": "--- MiMo (OpenRouter) ---", "value": "separator"},
+        {"name": "MiMo v2.5 Pro (via OpenRouter)", "value": "xiaomi/mimo-v2.5-pro"},
+        {"name": "MiMo v2.5 Flash (via OpenRouter)", "value": "xiaomi/mimo-v2.5-flash"},
+        {"name": "--- DeepSeek ---", "value": "separator"},
+        {"name": "DeepSeek Chat", "value": "deepseek-chat"},
+        {"name": "DeepSeek Reasoner", "value": "deepseek-reasoner"},
+        {"name": "DeepSeek Coder", "value": "deepseek-coder"},
     ]
 
 
