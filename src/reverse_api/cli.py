@@ -1018,8 +1018,10 @@ def handle_settings(mode_color=THEME_PRIMARY):
         Choice(title="Copilot Model", value="copilot_model"),
         Choice(title="Cursor Model", value="cursor_model"),
         Choice(title="Cursor Web Search", value="cursor_web_search"),
+        Choice(title="DeepSeek Model", value="deepseek_model"),
         Choice(title="OpenCode Model", value="opencode_model"),
         Choice(title="OpenCode Provider", value="opencode_provider"),
+        Choice(title="OpenRouter Model", value="openrouter_model"),
         Choice(title="Output Directory", value="output_dir"),
         Choice(title="Output Language", value="output_language"),
         Choice(title="Real-time Sync", value="real_time_sync"),
@@ -1276,6 +1278,50 @@ def handle_settings(mode_color=THEME_PRIMARY):
             else:
                 config_manager.set("opencode_model", new_model)
                 console.print(f" [dim]updated[/dim] opencode model: {new_model}\n")
+
+    elif action == "openrouter_model":
+        current = config_manager.get("openrouter_model", "anthropic/claude-sonnet-4")
+        new_model = questionary.text(
+            " > openrouter model",
+            default=current or "anthropic/claude-sonnet-4",
+            instruction="(e.g., 'anthropic/claude-sonnet-4', 'google/gemini-2.5-pro')",
+            qmark="",
+            style=questionary.Style(
+                [
+                    ("question", f"fg:{THEME_SECONDARY}"),
+                    ("instruction", f"fg:{THEME_DIM} italic"),
+                ]
+            ),
+        ).ask()
+        if new_model is not None:
+            new_model = new_model.strip()
+            if not new_model:
+                console.print(" [yellow]error:[/yellow] openrouter model cannot be empty\n")
+            else:
+                config_manager.set("openrouter_model", new_model)
+                console.print(f" [dim]updated[/dim] openrouter model: {new_model}\n")
+
+    elif action == "deepseek_model":
+        current = config_manager.get("deepseek_model", "deepseek-chat")
+        new_model = questionary.text(
+            " > deepseek model",
+            default=current or "deepseek-chat",
+            instruction="(e.g., 'deepseek-chat', 'deepseek-reasoner', 'deepseek-coder')",
+            qmark="",
+            style=questionary.Style(
+                [
+                    ("question", f"fg:{THEME_SECONDARY}"),
+                    ("instruction", f"fg:{THEME_DIM} italic"),
+                ]
+            ),
+        ).ask()
+        if new_model is not None:
+            new_model = new_model.strip()
+            if not new_model:
+                console.print(" [yellow]error:[/yellow] deepseek model cannot be empty\n")
+            else:
+                config_manager.set("deepseek_model", new_model)
+                console.print(f" [dim]updated[/dim] deepseek model: {new_model}\n")
 
     elif action == "real_time_sync":
         current = config_manager.get("real_time_sync", True)
